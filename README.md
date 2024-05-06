@@ -4,27 +4,29 @@ The OneUptime Infrastructure Agent is a lightweight, open-source agent that coll
 
 ## Installation
 
-```
+Download the Installation Script
+```bash
 curl -O https://raw.githubusercontent.com/anxuanzi/oneuptime-infrastructure-agent-go/main/install.sh
+```
 
-# then run the install script
-
+Run the Installation Script
+```bash
 chmod +x install.sh && ./install.sh
+```
 
-# You can change the host to your own host if you're self hosting the OneUptime platform. 
-# You can find the secret key on OneUptime Dashboard. Click on "View Monitor" and go to "Settings" tab.
-# Install the agent as a systemd service.
-
+Install the agent as a system service
+- You can change the host to your own host if you're self hosting the OneUptime platform. 
+- You can find the secret key on OneUptime Dashboard. Click on "View Monitor" and go to "Settings" tab.
+```bash
 oneuptime-infrastructure-agent install --secret-key=YOUR_SECRET_KEY --oneuptime-url=https://oneuptime.com
 ```
-
-Once its up and running you should see the metrics on the OneUptime Dashboard.
 
 ## Starting the agent
 
 ```
 oneuptime-infrastructure-agent start
 ```
+Once its up and running you should see the metrics on the OneUptime Dashboard.
 
 ## Stopping the agent
 
