@@ -199,10 +199,10 @@ func (c *configFile) configPath() string {
 	if runtime.GOOS == "windows" {
 		basePath = os.Getenv("PROGRAMDATA")
 		if basePath == "" {
-			basePath = fmt.Sprintf("C:%sProgramData", filepath.Separator)
+			basePath = fmt.Sprintf("C:%sProgramData", string(filepath.Separator))
 		}
 	} else {
-		basePath = fmt.Sprintf("%setc", filepath.Separator)
+		basePath = fmt.Sprintf("%setc", string(filepath.Separator))
 	}
 
 	// Define the directory path where the configuration file will be stored.
@@ -300,12 +300,14 @@ func main() {
 				slog.Fatal(err)
 				return
 			}
-			// Assume implementation for Load() here
-			// Example: err := prg.config.Load()
 			if err != nil || prg.config.SecretKey == "" || prg.config.OneUptimeURL == "" {
 				log.Fatal("Service configuration not found or is incomplete. Please install the service properly.")
 			}
-			s.Run()
+			err = s.Run()
+			if err != nil {
+				slog.Fatal(err)
+				return
+			}
 		case "uninstall", "stop", "restart":
 			err := service.Control(s, cmd)
 			if err != nil {
