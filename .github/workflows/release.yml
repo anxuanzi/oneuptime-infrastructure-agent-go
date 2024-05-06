@@ -2,11 +2,10 @@
 name: goreleaser
 
 on:
-  pull_request:
   push:
-    # run only against tags
-    tags:
-      - "*"
+    branches: [ "main" ]
+    # Publish semver tags as releases.
+    tags: [ 'v*.*.*' ]
 
 permissions:
   contents: write
