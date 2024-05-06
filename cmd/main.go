@@ -194,6 +194,25 @@ func (c *configFile) create() error {
 	return nil
 }
 
+// removeConfigFile deletes the configuration file.
+func (c *configFile) removeConfigFile() error {
+
+	// Check if the file exists before attempting to remove it.
+	if _, err := os.Stat(c.configPath()); os.IsNotExist(err) {
+		// File does not exist, return an error or handle it accordingly.
+		return os.ErrNotExist
+	}
+
+	// Remove the file.
+	err := os.Remove(c.configPath())
+	if err != nil {
+		// Handle potential errors in deleting the file.
+		return err
+	}
+
+	return nil
+}
+
 // ensureDir checks if a directory exists and makes it if it does not.
 func (c *configFile) ensureDir(dirName string) error {
 	// Check if the directory exists
@@ -341,6 +360,14 @@ func main() {
 				os.Exit(2)
 			}
 		case "uninstall", "stop", "restart":
+			if cmd == "uninstall" {
+				// remove configuration file
+				err := prg.config.removeConfigFile()
+				if err != nil {
+					slog.Fatal(err)
+					os.Exit(2)
+				}
+			}
 			err := service.Control(s, cmd)
 			if err != nil {
 				slog.Fatal("Failed to ", cmd, " service: ", err)
@@ -351,6 +378,7 @@ func main() {
 			slog.Error("Invalid command")
 			os.Exit(2)
 		}
+	} else {
+		fmt.Println("Usage: oneuptime-infrastructure-agent install | uninstall | start | stop | restart")
 	}
-	fmt.Println("Usage: oneuptime-infrastructure-agent install | uninstall | start | stop | restart")
 }
