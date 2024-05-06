@@ -158,7 +158,11 @@ func (c *configFile) loadConfig() error {
 }
 
 func (c *configFile) save(secretKey string, url string) error {
-	err := c.loadConfig()
+	err := c.create()
+	if err != nil {
+		return err
+	}
+	err = c.loadConfig()
 	if err != nil {
 		return err
 	}
@@ -170,6 +174,23 @@ func (c *configFile) save(secretKey string, url string) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (c *configFile) create() error {
+	// Check if the file already exists
+	if _, err := os.Stat(c.configPath()); os.IsNotExist(err) {
+		// File does not exist, create it with default configuration
+		file, err := os.Create(c.configPath())
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+	} else if err != nil {
+		// There was an error accessing the file
+		return err
+	}
+	// File exists or was successfully created
 	return nil
 }
 
@@ -270,14 +291,13 @@ func main() {
 	logHandler := logger.NewServiceSysLogHandler(l)
 	slog.PushHandler(logHandler)
 
-	flag.String("secret-key", "", "Secret key (required)")
-	flag.String("oneuptime-url", "", "Oneuptime endpoint root URL (required)")
-	flag.Parse()
-
 	if len(os.Args) > 1 {
 		cmd := os.Args[1]
 		switch cmd {
 		case "install":
+			flag.String("secret-key", "", "Secret key (required)")
+			flag.String("oneuptime-url", "", "Oneuptime endpoint root URL (required)")
+			flag.Parse()
 			prg.config.SecretKey = flag.Lookup("secret-key").Value.String()
 			prg.config.OneUptimeURL = flag.Lookup("oneuptime-url").Value.String()
 			if prg.config.SecretKey == "" || prg.config.OneUptimeURL == "" {
