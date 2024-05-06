@@ -295,17 +295,22 @@ func main() {
 		cmd := os.Args[1]
 		switch cmd {
 		case "install":
-			flag.String("secret-key", "", "Secret key (required)")
-			flag.String("oneuptime-url", "", "Oneuptime endpoint root URL (required)")
-			flag.Parse()
-			prg.config.SecretKey = flag.Lookup("secret-key").Value.String()
-			prg.config.OneUptimeURL = flag.Lookup("oneuptime-url").Value.String()
+			installFlags := flag.NewFlagSet("install", flag.ExitOnError)
+			secretKey := installFlags.String("secret-key", "", "Secret key (required)")
+			oneuptimeURL := installFlags.String("oneuptime-url", "", "Oneuptime endpoint root URL (required)")
+			err := installFlags.Parse(os.Args[2:])
+			if err != nil {
+				slog.Fatal(err)
+				os.Exit(2)
+			}
+			prg.config.SecretKey = *secretKey
+			prg.config.OneUptimeURL = *oneuptimeURL
 			if prg.config.SecretKey == "" || prg.config.OneUptimeURL == "" {
 				slog.Fatal("The --secret-key and --oneuptime-url flags are required for the 'install' command")
 				os.Exit(2)
 			}
 			// save configuration
-			err := prg.config.save(prg.config.SecretKey, prg.config.OneUptimeURL)
+			err = prg.config.save(prg.config.SecretKey, prg.config.OneUptimeURL)
 			if err != nil {
 				slog.Fatal(err)
 				os.Exit(2)
