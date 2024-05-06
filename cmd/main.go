@@ -180,7 +180,7 @@ func (c *configFile) save(secretKey string, url string) error {
 		return err
 	}
 	defer file.Close()
-	_, err = config.DumpTo(file, config.Yml)
+	_, err = config.DumpTo(file, config.Yaml)
 	if err != nil {
 		return err
 	}
