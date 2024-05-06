@@ -117,6 +117,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/gookit/config/v2"
@@ -157,12 +158,8 @@ func (c *configFile) loadConfig() error {
 }
 
 func (c *configFile) save(secretKey string, url string) error {
-	err := c.create()
-	if err != nil {
-		return err
-	}
-	err = c.loadConfig()
-	if err != nil {
+	err := c.loadConfig()
+	if err != nil && !os.IsNotExist(err) {
 		return err
 	}
 	err = config.Set("secret_key", secretKey)
@@ -173,24 +170,18 @@ func (c *configFile) save(secretKey string, url string) error {
 	if err != nil {
 		return err
 	}
-	return nil
-}
-
-func (c *configFile) create() error {
-	// Check if the file already exists
-	if _, err := os.Stat(c.configPath()); os.IsNotExist(err) {
-		// File does not exist, create it with default configuration
-		file, err := os.Create(c.configPath())
-		if err != nil {
-			return err
-		}
-		defer file.Close()
-	} else if err != nil {
-		// There was an error accessing the file
+	// Open the file with os.Create, which truncates the file if it already exists,
+	// and creates it if it doesn't.
+	file, err := os.Create(c.configPath())
+	if err != nil {
 		return err
 	}
-	// File exists or was successfully created
-	return nil
+	defer file.Close()
+	// Create a JSON encoder that writes to the file, and use Encode method
+	// which will write the map to the file in JSON format.
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "    ") // Optional: makes the output more readable
+	return encoder.Encode(config.Data())
 }
 
 // removeConfigFile deletes the configuration file.
@@ -281,7 +272,6 @@ func (p *program) Stop(s service.Service) error {
 func main() {
 	config.WithOptions(config.WithTagName("json"))
 	cfg := newConfigFile()
-	config.SaveFileOnSet(cfg.configPath(), config.JSON)
 
 	svcConfig := &service.Config{
 		Name:        "oneuptime-infrastructure-agent",
@@ -360,6 +350,11 @@ func main() {
 				os.Exit(2)
 			}
 		case "uninstall", "stop", "restart":
+			err := service.Control(s, cmd)
+			if err != nil {
+				slog.Fatal(err)
+				os.Exit(2)
+			}
 			if cmd == "uninstall" {
 				// remove configuration file
 				err := prg.config.removeConfigFile()
@@ -367,11 +362,6 @@ func main() {
 					slog.Fatal(err)
 					os.Exit(2)
 				}
-			}
-			err := service.Control(s, cmd)
-			if err != nil {
-				slog.Fatal(err)
-				os.Exit(2)
 			}
 		default:
 			slog.Error("Invalid command")
