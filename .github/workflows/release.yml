@@ -3,9 +3,9 @@ name: goreleaser
 
 on:
   push:
-    branches: [ "main" ]
-    # Publish semver tags as releases.
-    tags: [ 'v*.*.*' ]
+    # run only against tags
+    tags:
+      - "*"
 
 permissions:
   contents: write
