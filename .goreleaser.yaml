@@ -13,12 +13,10 @@ before:
     # You may remove this if you don't use go modules.
     - go mod tidy
     - go mod download
-
 env:
     - CGO_ENABLED=0
-
 builds:
-  - binary: oneuptime-infragent
+  - binary: oneuptime-infrastructure-agent
     main: ./cmd
     goos:
       - linux
@@ -26,7 +24,6 @@ builds:
       - darwin
       - freebsd
       - openbsd
-      - netbsd
     goarch:
       - amd64
       - arm64
@@ -34,7 +31,6 @@ builds:
     goarm:
       - 6
       - 7
-
 archives:
   - format: tar.gz
     # this name template makes the OS and Arch compatible with the results of `uname`.
@@ -49,7 +45,6 @@ archives:
     format_overrides:
       - goos: windows
         format: zip
-
 changelog:
   sort: asc
   filters:

@@ -254,18 +254,43 @@ type program struct {
 }
 
 func (p *program) Start(s service.Service) error {
+	if service.Interactive() {
+		slog.Info("Running in terminal.")
+	} else {
+		slog.Info("Running under service manager.")
+	}
+	p.exit = make(chan struct{})
 	// Start should not block. Do the actual work async.
 	go p.run()
 	return nil
 }
 
 func (p *program) run() {
-	// Actual service code here.
-	fmt.Println("Service is running")
+	p.agent = oneuptime_InfrastructureAgent_go.NewAgent(p.config.SecretKey, p.config.OneUptimeURL)
+	p.agent.Start()
+	if service.Interactive() {
+		slog.Info("Running in terminal.")
+		oneuptime_InfrastructureAgent_go.NewShutdownHook().Close(func() {
+			slog.Info("Service Exiting...")
+			p.agent.Close()
+		})
+	} else {
+		slog.Info("Running under service manager.")
+		for {
+			select {
+			case _, ok := <-p.exit:
+				if !ok {
+					slog.Info("Service Exiting...")
+					p.agent.Close()
+					return
+				}
+			}
+		}
+	}
 }
 
 func (p *program) Stop(s service.Service) error {
-	// Clean up here
+	close(p.exit)
 	return nil
 }
 
@@ -277,6 +302,7 @@ func main() {
 		Name:        "oneuptime-infrastructure-agent",
 		DisplayName: "OneUptime Infrastructure Agent",
 		Description: "The OneUptime Infrastructure Agent (Golang Version) is a lightweight, open-source agent that collects system metrics and sends them to the OneUptime platform. It is designed to be easy to install and use, and to be extensible.",
+		Arguments:   []string{"run"},
 	}
 
 	prg := &program{
@@ -344,6 +370,26 @@ func main() {
 				slog.Fatal("Service configuration not found or is incomplete. Please install the service properly.")
 				os.Exit(2)
 			}
+			err = s.Start()
+			if err != nil {
+				slog.Fatal(err)
+				os.Exit(2)
+			}
+			slog.Info("Service Started")
+		case "run":
+			err := prg.config.loadConfig()
+			if os.IsNotExist(err) {
+				slog.Fatal("Service configuration not found. Please install the service properly.")
+				os.Exit(2)
+			}
+			if err != nil {
+				slog.Fatal(err)
+				os.Exit(2)
+			}
+			if err != nil || prg.config.SecretKey == "" || prg.config.OneUptimeURL == "" {
+				slog.Fatal("Service configuration not found or is incomplete. Please install the service properly.")
+				os.Exit(2)
+			}
 			err = s.Run()
 			if err != nil {
 				slog.Fatal(err)
@@ -362,6 +408,10 @@ func main() {
 					slog.Fatal(err)
 					os.Exit(2)
 				}
+				slog.Info("Service Uninstalled")
+			}
+			if cmd == "stop" {
+				slog.Info("Service Stopped")
 			}
 		default:
 			slog.Error("Invalid command")
