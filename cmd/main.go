@@ -123,7 +123,6 @@ import (
 	"github.com/gookit/config/v2/yaml"
 	"github.com/gookit/slog"
 	"github.com/kardianos/service"
-	"log"
 	oneuptime_InfrastructureAgent_go "oneuptime-InfrastructureAgent-go"
 	"oneuptime-InfrastructureAgent-go/logger"
 	"os"
@@ -283,46 +282,50 @@ func main() {
 			prg.config.OneUptimeURL = flag.Lookup("oneuptime-url").Value.String()
 			if prg.config.SecretKey == "" || prg.config.OneUptimeURL == "" {
 				slog.Fatal("The --secret-key and --oneuptime-url flags are required for the 'install' command")
+				os.Exit(2)
 			}
 			// save configuration
 			err := prg.config.save(prg.config.SecretKey, prg.config.OneUptimeURL)
 			if err != nil {
 				slog.Fatal(err)
+				os.Exit(2)
 			}
 			// Install the service
 			if err := s.Install(); err != nil {
 				slog.Fatal("Failed to install service: ", err)
+				os.Exit(2)
 			}
 			fmt.Println("Service installed")
 		case "start":
 			err := prg.config.loadConfig()
 			if os.IsNotExist(err) {
 				slog.Fatal("Service configuration not found. Please install the service properly.")
-				return
+				os.Exit(2)
 			}
 			if err != nil {
 				slog.Fatal(err)
-				return
+				os.Exit(2)
 			}
 			if err != nil || prg.config.SecretKey == "" || prg.config.OneUptimeURL == "" {
-				log.Fatal("Service configuration not found or is incomplete. Please install the service properly.")
+				slog.Fatal("Service configuration not found or is incomplete. Please install the service properly.")
+				os.Exit(2)
 			}
 			err = s.Run()
 			if err != nil {
 				slog.Fatal(err)
-				return
+				os.Exit(2)
 			}
 		case "uninstall", "stop", "restart":
 			err := service.Control(s, cmd)
 			if err != nil {
 				slog.Fatal("Failed to ", cmd, " service: ", err)
+				os.Exit(2)
 				return
 			}
 		default:
-			fmt.Println("Invalid command")
+			slog.Error("Invalid command")
 			os.Exit(2)
 		}
-		fmt.Println("Invalid command")
-		return
 	}
+	fmt.Println("Usage: oneuptime-infrastructure-agent install | uninstall | start | stop | restart")
 }
