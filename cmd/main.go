@@ -174,6 +174,16 @@ func (c *configFile) save(secretKey string, url string) error {
 	if err != nil {
 		return err
 	}
+
+	file, err := os.Open(c.configPath())
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	_, err = config.DumpTo(file, config.Yml)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -283,7 +293,7 @@ func main() {
 	config.AddDriver(yaml.Driver)
 	config.WithOptions(config.WithTagName("json"))
 	cfg := newConfigFile()
-	config.SaveFileOnSet(cfg.configPath(), config.Yml)
+	//config.SaveFileOnSet(cfg.configPath(), config.Yml)
 
 	svcConfig := &service.Config{
 		Name:        "oneuptime-infrastructure-agent",
@@ -298,6 +308,7 @@ func main() {
 	s, err := service.New(prg, svcConfig)
 	if err != nil {
 		slog.Fatal(err)
+		os.Exit(2)
 	}
 
 	// Set up the logger
@@ -305,6 +316,7 @@ func main() {
 	l, err := s.Logger(errs)
 	if err != nil {
 		slog.Fatal(err)
+		os.Exit(2)
 	}
 
 	logHandler := logger.NewServiceSysLogHandler(l)
@@ -370,9 +382,8 @@ func main() {
 			}
 			err := service.Control(s, cmd)
 			if err != nil {
-				slog.Fatal("Failed to ", cmd, " service: ", err)
+				slog.Fatal(err)
 				os.Exit(2)
-				return
 			}
 		default:
 			slog.Error("Invalid command")
