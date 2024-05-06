@@ -120,7 +120,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/gookit/config/v2"
-	"github.com/gookit/config/v2/yaml"
 	"github.com/gookit/slog"
 	"github.com/kardianos/service"
 	oneuptime_InfrastructureAgent_go "oneuptime-InfrastructureAgent-go"
@@ -254,7 +253,7 @@ func (c *configFile) configPath() string {
 	}
 
 	// Return the full path to the configuration file.
-	return filepath.Join(configDirectory, "config.yml")
+	return filepath.Join(configDirectory, "config.json")
 }
 
 type program struct {
@@ -280,10 +279,9 @@ func (p *program) Stop(s service.Service) error {
 }
 
 func main() {
-	config.AddDriver(yaml.Driver)
 	config.WithOptions(config.WithTagName("json"))
 	cfg := newConfigFile()
-	config.SaveFileOnSet(cfg.configPath(), config.Yaml)
+	config.SaveFileOnSet(cfg.configPath(), config.JSON)
 
 	svcConfig := &service.Config{
 		Name:        "oneuptime-infrastructure-agent",
