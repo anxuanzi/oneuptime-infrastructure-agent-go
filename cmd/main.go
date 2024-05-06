@@ -296,6 +296,10 @@ func main() {
 			fmt.Println("Service installed")
 		case "start":
 			err := prg.config.loadConfig()
+			if os.IsNotExist(err) {
+				slog.Fatal("Service configuration not found. Please install the service properly.")
+				return
+			}
 			if err != nil {
 				slog.Fatal(err)
 				return
@@ -318,6 +322,7 @@ func main() {
 			fmt.Println("Invalid command")
 			os.Exit(2)
 		}
+		fmt.Println("Invalid command")
 		return
 	}
 }
