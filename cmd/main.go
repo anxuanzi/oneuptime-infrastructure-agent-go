@@ -174,16 +174,6 @@ func (c *configFile) save(secretKey string, url string) error {
 	if err != nil {
 		return err
 	}
-
-	file, err := os.Open(c.configPath())
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	_, err = config.DumpTo(file, config.Yaml)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -293,7 +283,7 @@ func main() {
 	config.AddDriver(yaml.Driver)
 	config.WithOptions(config.WithTagName("json"))
 	cfg := newConfigFile()
-	//config.SaveFileOnSet(cfg.configPath(), config.Yml)
+	config.SaveFileOnSet(cfg.configPath(), config.Yaml)
 
 	svcConfig := &service.Config{
 		Name:        "oneuptime-infrastructure-agent",
