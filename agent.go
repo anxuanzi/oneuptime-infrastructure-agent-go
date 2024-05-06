@@ -67,7 +67,6 @@ func (ag *Agent) Start() {
 		os.Exit(1)
 		return
 	}
-	slog.Info("Agent has been started.")
 }
 
 func (ag *Agent) Close() {
@@ -75,7 +74,6 @@ func (ag *Agent) Close() {
 	if err != nil {
 		slog.Error(err.Error())
 	}
-	slog.Info("Agent has been stopped.")
 }
 
 func collectMetricsJob(secretKey string, oneuptimeURL string) {
