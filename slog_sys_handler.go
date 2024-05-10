@@ -1,4 +1,4 @@
-package logger
+package oneuptime_InfrastructureAgent_go
 
 import (
 	"github.com/gookit/slog"

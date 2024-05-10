@@ -1,8 +1,8 @@
 package oneuptime_InfrastructureAgent_go
 
 import (
+	"github.com/gookit/slog"
 	"github.com/shirou/gopsutil/v3/process"
-	"log/slog"
 )
 
 // getServerProcesses retrieves the list of server processes
@@ -12,7 +12,7 @@ func getServerProcesses() []*ServerProcess {
 	// Fetch all processes
 	processList, err := process.Processes()
 	if err != nil {
-		slog.Error(err.Error())
+		slog.Error("Failed to fetch process list", err)
 		return nil
 	}
 
