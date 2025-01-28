@@ -1,3 +1,5 @@
+# MERGED TO: https://github.com/OneUptime/oneuptime/tree/master/InfrastructureAgent
+
 # OneUptime Infrastructure Agent (go)
 
 The OneUptime Infrastructure Agent is a lightweight, open-source agent that collects system metrics and sends them to the OneUptime platform. It is designed to be easy to install and use, and to be extensible.
